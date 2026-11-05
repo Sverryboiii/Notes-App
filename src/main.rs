@@ -9,7 +9,6 @@ pub struct Rect {
     h: i32,
     color: u32
 }
-
 impl Rect {
     pub fn new(x: i32, y: i32, w: i32, h: i32, color: u32) -> Rect {
         Rect { x, y, w, h, color }
@@ -25,9 +24,45 @@ impl Rect {
         for y in self.y..(self.y + self.h) {
             for x in self.x..(self.x + self.w) {
                 let index = y * display_width + x;
-                if x < display_width && y < display_height {
-                    buffer[index as usize] = self.color;
+                if x >= display_width || y >= display_height {
+                    continue
                 }
+                buffer[index as usize] = self.color;
+            }
+        }
+    }
+}
+
+pub struct Circle {
+    x: i32,
+    y: i32,
+    rad: i32,
+    color: u32
+}
+impl Circle {
+    pub fn new(x: i32, y: i32, rad: i32, color: u32) -> Circle {
+        Circle { x, y, rad, color }
+    }
+
+    pub fn draw(
+        &self,
+        surface: &mut softbuffer::Surface<&winit::window::Window, &winit::window::Window>,
+        display_width: i32,
+        display_height: i32
+    ) {
+        let mut buffer = surface.buffer_mut().unwrap();
+        for y in (self.y - self.rad / 2)..(self.y + self.rad / 2) {
+            for x in (self.x - self.rad / 2)..(self.x + self.rad / 2) {
+                if x >= display_width || y >= display_height {
+                    continue;
+                }
+                // VVV MUST FIX CIRCLE LOGIC! VVV
+                if (x - self.x) * (x - self.x) +
+                    (y + self.y) * (y + self.y) <= self.rad * self.rad {
+                    continue
+                }
+                let index = y * display_width + x;
+                buffer[index as usize] = self.color
             }
         }
     }
@@ -43,6 +78,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>>{
     surface.resize(NonZeroU32::new(display_width).unwrap(), NonZeroU32::new(display_height).unwrap())?;
 
     let r = Rect::new(3, 500, 1000, 60, 0xff00ff);
+    let c = Circle::new(300, 300, 200, 0xffff00);
 
     event_loop.run(move |event, elwt| {
         match event {Event::WindowEvent {event, ..} => match event {
@@ -50,6 +86,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>>{
             WindowEvent::RedrawRequested => {
                 surface.buffer_mut().unwrap().fill(0x0f0f0f);
                 r.draw(&mut surface, display_width as i32, display_height as i32);
+                c.draw(&mut surface, display_width as i32, display_height as i32);
 
                 surface.buffer_mut().unwrap().present().expect("TODO: panic message");
             }
