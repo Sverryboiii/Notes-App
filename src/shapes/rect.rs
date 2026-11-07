@@ -1,3 +1,4 @@
+use winit::window::Window;
 use crate::general::general::in_screen;
 
 pub struct Rect {
@@ -14,11 +15,10 @@ impl Rect {
 
     pub fn draw(
         &self,
-        surface: &mut softbuffer::Surface<&winit::window::Window, &winit::window::Window>,
+        buffer: &mut softbuffer::Buffer<&Window, &Window>,
         display_width: i32,
         display_height: i32
     ) {
-        let mut buffer = surface.buffer_mut().unwrap();
         for y in self.y..(self.y + self.h) {
             for x in self.x..(self.x + self.w) {
                 let index = y * display_width + x;

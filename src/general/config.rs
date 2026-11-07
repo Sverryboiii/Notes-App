@@ -1,0 +1,1 @@
+pub static SIDE_BAR_WIDTH: i32 = 100;
